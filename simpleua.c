@@ -858,7 +858,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
     pjmedia_stream_get_port(g_med_stream, &media_port);
 
     /* Create sound port */
-    pjmedia_snd_port_create(inv->pool,
+    status = pjmedia_snd_port_create(inv->pool,
                             PJMEDIA_AUD_DEFAULT_CAPTURE_DEV,
                             PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV,
                             PJMEDIA_PIA_SRATE(&media_port->info),/* clock rate	    */
