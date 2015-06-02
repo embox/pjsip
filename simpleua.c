@@ -1,5 +1,5 @@
 /* $Id: simpleua.c 4051 2012-04-13 08:16:30Z ming $ */
-/* 
+/*
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 
@@ -91,11 +91,11 @@ static pj_caching_pool	     cp;	    /* Global pool factory.	*/
 
 static pjmedia_endpt	    *g_med_endpt;   /* Media endpoint.		*/
 
-static pjmedia_transport_info g_med_tpinfo[MAX_MEDIA_CNT]; 
+static pjmedia_transport_info g_med_tpinfo[MAX_MEDIA_CNT];
 					    /* Socket info for media	*/
 static pjmedia_transport    *g_med_transport[MAX_MEDIA_CNT];
 					    /* Media stream transport	*/
-static pjmedia_sock_info     g_sock_info[MAX_MEDIA_CNT];  
+static pjmedia_sock_info     g_sock_info[MAX_MEDIA_CNT];
 					    /* Socket info array	*/
 
 /* Call variables: */
@@ -118,7 +118,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
 				  pj_status_t status);
 
 /* Callback to be called when invite session's state has changed: */
-static void call_on_state_changed( pjsip_inv_session *inv, 
+static void call_on_state_changed( pjsip_inv_session *inv,
 				   pjsip_event *e);
 
 /* Callback to be called when dialog has forked: */
@@ -166,7 +166,7 @@ static pj_bool_t logging_on_rx_msg(pjsip_rx_data *rdata)
 			 rdata->pkt_info.src_port,
 			 (int)rdata->msg_info.len,
 			 rdata->msg_info.msg_buf));
-    
+
     /* Always return false, otherwise messages will not get processed! */
     return PJ_FALSE;
 }
@@ -174,7 +174,7 @@ static pj_bool_t logging_on_rx_msg(pjsip_rx_data *rdata)
 /* Notification on outgoing messages */
 static pj_status_t logging_on_tx_msg(pjsip_tx_data *tdata)
 {
-    
+
     /* Important note:
      *	tp_info field is only valid after outgoing messages has passed
      *	transport layer. So don't try to access tp_info when the module
@@ -197,7 +197,7 @@ static pj_status_t logging_on_tx_msg(pjsip_tx_data *tdata)
 }
 
 /* The module instance. */
-static pjsip_module msg_logger = 
+static pjsip_module msg_logger =
 {
     NULL, NULL,				/* prev, next.		*/
     { "mod-msg-log", 13 },		/* Name.		*/
@@ -258,14 +258,14 @@ int main(int argc, char *argv[])
 
 	/* Create the endpoint: */
 
-	status = pjsip_endpt_create(&cp.factory, endpt_name, 
+	status = pjsip_endpt_create(&cp.factory, endpt_name,
 				    &g_endpt);
 	PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
     }
 
 
-    /* 
-     * Add UDP transport, with hard-coded port 
+    /*
+     * Add UDP transport, with hard-coded port
      * Alternatively, application can use pjsip_udp_transport_attach() to
      * start UDP transport, if it already has an UDP socket (e.g. after it
      * resolves the address with STUN).
@@ -274,9 +274,9 @@ int main(int argc, char *argv[])
 	pj_sockaddr addr;
 
 	pj_sockaddr_init(AF, &addr, NULL, (pj_uint16_t)SIP_PORT);
-	
+
 	if (AF == pj_AF_INET()) {
-	    status = pjsip_udp_transport_start( g_endpt, &addr.ipv4, NULL, 
+	    status = pjsip_udp_transport_start( g_endpt, &addr.ipv4, NULL,
 						1, NULL);
 	} else if (AF == pj_AF_INET6()) {
 	    status = pjsip_udp_transport_start6(g_endpt, &addr.ipv6, NULL,
@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
     }
 
 
-    /* 
+    /*
      * Init transaction layer.
      * This will create/initialize transaction hash tables etc.
      */
@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
 
 
-    /* 
+    /*
      * Initialize UA layer module.
      * This will create/initialize dialog hash tables etc.
      */
@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
 
 
-    /* 
+    /*
      * Init invite session module.
      * The invite session module initialization takes additional argument,
      * i.e. a structure containing callbacks to be called on specific
@@ -351,21 +351,21 @@ int main(int argc, char *argv[])
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
 
 
-    /* 
+    /*
      * Initialize media endpoint.
      * This will implicitly initialize PJMEDIA too.
      */
 #if PJ_HAS_THREADS
     status = pjmedia_endpt_create(&cp.factory, NULL, 1, &g_med_endpt);
 #else
-    status = pjmedia_endpt_create(&cp.factory, 
-				  pjsip_endpt_get_ioqueue(g_endpt), 
+    status = pjmedia_endpt_create(&cp.factory,
+				  pjsip_endpt_get_ioqueue(g_endpt),
 				  0, &g_med_endpt);
 #endif
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, 1);
 
-    /* 
-     * Add PCMA/PCMU codec to the media endpoint. 
+    /*
+     * Add PCMA/PCMU codec to the media endpoint.
      */
 #if defined(PJMEDIA_HAS_G711_CODEC) && PJMEDIA_HAS_G711_CODEC!=0
     status = pjmedia_codec_g711_init(g_med_endpt);
@@ -392,22 +392,22 @@ int main(int argc, char *argv[])
 #  endif  /* PJMEDIA_HAS_FFMPEG_VID_CODEC */
 
 #endif	/* PJMEDIA_HAS_VIDEO */
-    
-    /* 
+
+    /*
      * Create media transport used to send/receive RTP/RTCP socket.
      * One media transport is needed for each call. Application may
      * opt to re-use the same media transport for subsequent calls.
      */
     for (i = 0; i < PJ_ARRAY_SIZE(g_med_transport); ++i) {
-	status = pjmedia_transport_udp_create3(g_med_endpt, AF, NULL, NULL, 
-					       RTP_PORT + i*2, 0, 
+	status = pjmedia_transport_udp_create3(g_med_endpt, AF, NULL, NULL,
+					       RTP_PORT + i*2, 0,
 					       &g_med_transport[i]);
 	if (status != PJ_SUCCESS) {
 	    app_perror(THIS_FILE, "Unable to create media transport", status);
 	    return 1;
 	}
 
-	/* 
+	/*
 	 * Get socket info (address, port) of the media transport. We will
 	 * need this info to create SDP (i.e. the address and port info in
 	 * the SDP).
@@ -438,12 +438,12 @@ int main(int argc, char *argv[])
 	}
 	pj_sockaddr_print(&hostaddr, hostip, sizeof(hostip), 2);
 
-	pj_ansi_sprintf(temp, "<sip:simpleuac@%s:%d>", 
+	pj_ansi_sprintf(temp, "<sip:simpleuac@%s:%d>",
 			hostip, SIP_PORT);
 	local_uri = pj_str(temp);
 
 	/* Create UAC dialog */
-	status = pjsip_dlg_create_uac( pjsip_ua_instance(), 
+	status = pjsip_dlg_create_uac( pjsip_ua_instance(),
 				       &local_uri,  /* local URI */
 				       &local_uri,  /* local Contact */
 				       &dst_uri,    /* remote URI */
@@ -504,7 +504,7 @@ int main(int argc, char *argv[])
 
 		pj_list_init(&route_set);
 
-		route = pjsip_parse_hdr( dlg->pool, &hname, 
+		route = pjsip_parse_hdr( dlg->pool, &hname,
 					 uri, strlen(uri),
 					 NULL);
 		PJ_ASSERT_RETURN(route != NULL, 1);
@@ -517,7 +517,7 @@ int main(int argc, char *argv[])
 	 */
 
 	/* Create initial INVITE request.
-	 * This INVITE request will contain a perfectly good request and 
+	 * This INVITE request will contain a perfectly good request and
 	 * an SDP body as well.
 	 */
 	status = pjsip_inv_invite(g_inv, &tdata);
@@ -525,7 +525,7 @@ int main(int argc, char *argv[])
 
 
 
-	/* Send initial INVITE request. 
+	/* Send initial INVITE request.
 	 * From now on, the invite session's state will be reported to us
 	 * via the invite session callbacks.
 	 */
@@ -608,14 +608,14 @@ int main(int argc, char *argv[])
  * We mostly want to know when the invite session has been disconnected,
  * so that we can quit the application.
  */
-static void call_on_state_changed( pjsip_inv_session *inv, 
+static void call_on_state_changed( pjsip_inv_session *inv,
 				   pjsip_event *e)
 {
     PJ_UNUSED_ARG(e);
 
     if (inv->state == PJSIP_INV_STATE_DISCONNECTED) {
 
-	PJ_LOG(3,(THIS_FILE, "Call DISCONNECTED [reason=%d (%s)]", 
+	PJ_LOG(3,(THIS_FILE, "Call DISCONNECTED [reason=%d (%s)]",
 		  inv->cause,
 		  pjsip_get_status_text(inv->cause)->ptr));
 
@@ -624,7 +624,7 @@ static void call_on_state_changed( pjsip_inv_session *inv,
 
     } else {
 
-	PJ_LOG(3,(THIS_FILE, "Call state changed to %s", 
+	PJ_LOG(3,(THIS_FILE, "Call state changed to %s",
 		  pjsip_inv_state_name(inv->state)));
 
     }
@@ -657,8 +657,8 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
     pj_status_t status;
 
 
-    /* 
-     * Respond (statelessly) any non-INVITE requests with 500 
+    /*
+     * Respond (statelessly) any non-INVITE requests with 500
      */
     if (rdata->msg_info.msg->line.req.method.id != PJSIP_INVITE_METHOD) {
 
@@ -666,7 +666,7 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
 	    pj_str_t reason = pj_str("Simple UA unable to handle "
 				     "this request");
 
-	    pjsip_endpt_respond_stateless( g_endpt, rdata, 
+	    pjsip_endpt_respond_stateless( g_endpt, rdata,
 					   500, &reason,
 					   NULL, NULL);
 	}
@@ -681,7 +681,7 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
 
 	pj_str_t reason = pj_str("Another call is in progress");
 
-	pjsip_endpt_respond_stateless( g_endpt, rdata, 
+	pjsip_endpt_respond_stateless( g_endpt, rdata,
 				       500, &reason,
 				       NULL, NULL);
 	return PJ_TRUE;
@@ -695,11 +695,11 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
 
 	pj_str_t reason = pj_str("Sorry Simple UA can not handle this INVITE");
 
-	pjsip_endpt_respond_stateless( g_endpt, rdata, 
+	pjsip_endpt_respond_stateless( g_endpt, rdata,
 				       500, &reason,
 				       NULL, NULL);
 	return PJ_TRUE;
-    } 
+    }
 
     /*
      * Generate Contact URI
@@ -710,14 +710,14 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
     }
     pj_sockaddr_print(&hostaddr, hostip, sizeof(hostip), 2);
 
-    pj_ansi_sprintf(temp, "<sip:simpleuas@%s:%d>", 
+    pj_ansi_sprintf(temp, "<sip:simpleuas@%s:%d>",
 		    hostip, SIP_PORT);
     local_uri = pj_str(temp);
 
     /*
      * Create UAS dialog.
      */
-    status = pjsip_dlg_create_uas( pjsip_ua_instance(), 
+    status = pjsip_dlg_create_uas( pjsip_ua_instance(),
 				   rdata,
 				   &local_uri, /* contact */
 				   &dlg);
@@ -727,8 +727,8 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
 	return PJ_TRUE;
     }
 
-    /* 
-     * Get media capability from media endpoint: 
+    /*
+     * Get media capability from media endpoint:
      */
 
     status = pjmedia_endpt_create_sdp( g_med_endpt, rdata->tp_info.pool,
@@ -736,7 +736,7 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, PJ_TRUE);
 
 
-    /* 
+    /*
      * Create invite session, and pass both the UAS dialog and the SDP
      * capability to the session.
      */
@@ -751,21 +751,21 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
      * pjsip_inv_initial_answer(). Subsequent responses to the same
      * transaction MUST use pjsip_inv_answer().
      */
-    status = pjsip_inv_initial_answer(g_inv, rdata, 
-				      180, 
+    status = pjsip_inv_initial_answer(g_inv, rdata,
+				      180,
 				      NULL, NULL, &tdata);
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, PJ_TRUE);
 
 
-    /* Send the 180 response. */  
-    status = pjsip_inv_send_msg(g_inv, tdata); 
+    /* Send the 180 response. */
+    status = pjsip_inv_send_msg(g_inv, tdata);
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, PJ_TRUE);
 
 
     /*
      * Now create 200 response.
      */
-    status = pjsip_inv_answer( g_inv, 
+    status = pjsip_inv_answer( g_inv,
 			       200, NULL,	/* st_code and st_text */
 			       NULL,		/* SDP already specified */
 			       &tdata);
@@ -778,14 +778,14 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
     PJ_ASSERT_RETURN(status == PJ_SUCCESS, PJ_TRUE);
 
 
-    /* Done. 
+    /* Done.
      * When the call is disconnected, it will be reported via the callback.
      */
 
     return PJ_TRUE;
 }
 
- 
+
 
 /*
  * Callback when SDP negotiation has completed.
@@ -804,7 +804,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
 
 	app_perror(THIS_FILE, "SDP negotiation has failed", status);
 
-	/* Here we should disconnect call if we're not in the middle 
+	/* Here we should disconnect call if we're not in the middle
 	 * of initializing an UAS dialog and if this is not a re-INVITE.
 	 */
 	return;
@@ -849,7 +849,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
 	return;
     }
 
-    /* Get the media port interface of the audio stream. 
+    /* Get the media port interface of the audio stream.
      * Media port interface is basicly a struct containing get_frame() and
      * put_frame() function. With this media port interface, we can attach
      * the port interface to conference bridge, or directly to a sound
@@ -858,29 +858,36 @@ static void call_on_media_update( pjsip_inv_session *inv,
     pjmedia_stream_get_port(g_med_stream, &media_port);
 
     /* Create sound port */
-    status = pjmedia_snd_port_create(inv->pool,
-                            PJMEDIA_AUD_DEFAULT_CAPTURE_DEV,
-                            PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV,
-                            PJMEDIA_PIA_SRATE(&media_port->info),/* clock rate	    */
-                            PJMEDIA_PIA_CCNT(&media_port->info),/* channel count    */
-                            PJMEDIA_PIA_SPF(&media_port->info), /* samples per frame*/
-                            PJMEDIA_PIA_BITS(&media_port->info),/* bits per sample  */
-                            0,
-                            &g_snd_port);
 
-    if (status != PJ_SUCCESS) {
-	app_perror( THIS_FILE, "Unable to create sound port", status);
-	PJ_LOG(3,(THIS_FILE, "%d %d %d %d",
-		    PJMEDIA_PIA_SRATE(&media_port->info),/* clock rate	    */
-		    PJMEDIA_PIA_CCNT(&media_port->info),/* channel count    */
-		    PJMEDIA_PIA_SPF(&media_port->info), /* samples per frame*/
-		    PJMEDIA_PIA_BITS(&media_port->info) /* bits per sample  */
-	    ));
-	return;
+    {
+	unsigned wav_ptime;
+	char play_file[] = "iron_man.wav";
+	pjmedia_port *play_file_port = NULL;
+	pjmedia_master_port *master_port = NULL;
+
+	wav_ptime = PJMEDIA_PIA_PTIME(&media_port->info);
+	status = pjmedia_wav_player_port_create(inv->dlg->pool, play_file, wav_ptime,
+						0, -1, &play_file_port);
+	if (status != PJ_SUCCESS) {
+		app_perror(THIS_FILE, "Unable to use file", status);
+		return;
+	}
+
+	status = pjmedia_master_port_create(inv->dlg->pool, play_file_port, media_port,
+					    0, &master_port);
+	if (status != PJ_SUCCESS) {
+		app_perror(THIS_FILE, "Unable to create master port", status);
+		return;
+	}
+
+	status = pjmedia_master_port_start(master_port);
+	if (status != PJ_SUCCESS) {
+		app_perror(THIS_FILE, "Error starting master port", status);
+		return;
+	}
+
+	printf("Playing from WAV file %s..\n", play_file);
     }
-
-    status = pjmedia_snd_port_connect(g_snd_port, media_port);
-
 
     /* Get the media port interface of the second stream in the session,
      * which is video stream. With this media port interface, we can attach
@@ -946,7 +953,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
 	    vport_param.active = PJ_TRUE;
 
 	    /* Create renderer */
-	    status = pjmedia_vid_port_create(inv->pool, &vport_param, 
+	    status = pjmedia_vid_port_create(inv->pool, &vport_param,
 					     &g_vid_renderer);
 	    if (status != PJ_SUCCESS) {
 		app_perror(THIS_FILE, "Unable to create video renderer device",
@@ -955,7 +962,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
 	    }
 
 	    /* Connect renderer to media_port */
-	    status = pjmedia_vid_port_connect(g_vid_renderer, media_port, 
+	    status = pjmedia_vid_port_connect(g_vid_renderer, media_port,
 					      PJ_FALSE);
 	    if (status != PJ_SUCCESS) {
 		app_perror(THIS_FILE, "Unable to connect renderer to stream",
@@ -980,13 +987,13 @@ static void call_on_media_update( pjsip_inv_session *inv,
 					&media_port);
 
 	    /* Get capturer format from stream info */
-	    pjmedia_format_copy(&vport_param.vidparam.fmt, 
+	    pjmedia_format_copy(&vport_param.vidparam.fmt,
 	                        &media_port->info.fmt);
 	    vport_param.vidparam.dir = PJMEDIA_DIR_CAPTURE;
 	    vport_param.active = PJ_TRUE;
 
 	    /* Create capturer */
-	    status = pjmedia_vid_port_create(inv->pool, &vport_param, 
+	    status = pjmedia_vid_port_create(inv->pool, &vport_param,
 					     &g_vid_capturer);
 	    if (status != PJ_SUCCESS) {
 		app_perror(THIS_FILE, "Unable to create video capture device",
@@ -995,7 +1002,7 @@ static void call_on_media_update( pjsip_inv_session *inv,
 	    }
 
 	    /* Connect capturer to media_port */
-	    status = pjmedia_vid_port_connect(g_vid_capturer, media_port, 
+	    status = pjmedia_vid_port_connect(g_vid_capturer, media_port,
 					      PJ_FALSE);
 	    if (status != PJ_SUCCESS) {
 		app_perror(THIS_FILE, "Unable to connect capturer to stream",
