@@ -17,7 +17,8 @@ pushd $PJPROJECT
 		--disable-opencore-amr \
 		--disable-v4l2 \
 		--disable-vide \
-		--disable-ffmpeg
+		--disable-ffmpeg \
+		--with-external-srtp
 
 	cp $BASE/user.mak .
 	make dep
