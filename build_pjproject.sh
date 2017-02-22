@@ -8,7 +8,8 @@ PJINSTALL=$PWD/pjinstall
 
 rm -rf $PJPROJECT $PJINSTALL
 tar -axf $BASE/$PJPROJECT.tar.bz2
-pushd $PJPROJECT
+
+cd $BASE/$PJPROJECT
 
 	./configure \
 		CFLAGS=-O0 \
@@ -25,4 +26,5 @@ pushd $PJPROJECT
 	make
 	make DESTDIR=$PJINSTALL install
 
-popd
+cd $BASE
+

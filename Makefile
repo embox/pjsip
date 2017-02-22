@@ -11,7 +11,7 @@ PKGCONFIG := \
 all : $(APPS)
 
 % : %.c
-	gcc -g `$(PKGCONFIG) --cflags libpjproject` $< `$(PKGCONFIG) --libs libpjproject` -o $@
+	gcc --verbose -g `$(PKGCONFIG) --cflags libpjproject` $< -Wl,--start-group `$(PKGCONFIG) --libs libpjproject` -Wl,--end-group -o $@
 
 clean :
 	rm -f $(APPS)
