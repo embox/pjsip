@@ -1,5 +1,5 @@
 
-APPS := simpleua resampleplay streamutil
+APPS := simpleua resampleplay streamutil simple_pjsua
 
 PJINSTALL := ./pjinstall
 

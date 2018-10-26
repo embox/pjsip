@@ -71,12 +71,24 @@
 				      * PJ_HAS_IPV6 must be enabled and
 				      * your system must support IPv6.  */
 #if 0
-#define SIP_PORT	5080	     /* Listening SIP port		*/
-#define RTP_PORT	5000	     /* RTP port			*/
+#define SIP_PORT    5080         /* Listening SIP port      */
+#define RTP_PORT    5000         /* RTP port            */
 #else
-#define SIP_PORT	5060	     /* Listening SIP port		*/
-#define RTP_PORT	4000	     /* RTP port			*/
+#define SIP_PORT    5060         /* Listening SIP port      */
+#define RTP_PORT    4000         /* RTP port            */
 #endif
+
+/* Comment out one of the following 3 macros.
+ *
+ * PLAYBACK_ONLY - play audio from file instead of using microphone
+ * RECORD_ONLY   - record audio to file instead of using speakers
+ * PLAYBACK_AND_RECORD - play and record to files
+ *
+ * IF ALL OPTIONS ARE DISABLED the program behaves like original simpleua.c */
+
+#define PLAYBACK_ONLY
+//#define RECORD_ONLY
+//#define PLAYBACK_AND_RECORD
 
 #define MAX_MEDIA_CNT	2	     /* Media count, set to 1 for audio
 				      * only or 2 for audio and video	*/
@@ -785,7 +797,151 @@ static pj_bool_t on_rx_request( pjsip_rx_data *rdata )
     return PJ_TRUE;
 }
 
+struct play_rec_port {
+	pjmedia_port *rec_pj_port;
+	pjmedia_port *play_pj_port;
+};
 
+static struct play_rec_port global_rec_play_port;
+static pjmedia_port global_pj_port;
+
+static pj_status_t rec_play_port_get_frame(pjmedia_port *port,
+		pjmedia_frame *frame) {
+    pjmedia_port *p = global_rec_play_port.play_pj_port;
+
+    return p->get_frame(p, frame);
+}
+
+static pj_status_t rec_play_port_put_frame(pjmedia_port *port,
+		pjmedia_frame *frame) {
+    pjmedia_port *p = global_rec_play_port.rec_pj_port;
+
+    return p->put_frame(p, frame);
+}
+
+static void create_player_and_recorder(pjsip_inv_session *inv, pjmedia_port *media_port) {
+    pjmedia_master_port *master_port = NULL;
+    unsigned wav_ptime;
+    pj_status_t status;;
+    char play_file[] = "iron_man.wav";
+    char rec_file[] = "output.wav";
+    pjmedia_port *rec_file_port;
+    pjmedia_port *play_file_port;
+
+    wav_ptime = PJMEDIA_PIA_PTIME(&media_port->info);
+    status = pjmedia_wav_player_port_create(inv->pool, play_file, wav_ptime,
+		0, -1, &play_file_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to use play file", status);
+	return;
+    }
+
+    status = pjmedia_wav_writer_port_create(inv->pool,
+			rec_file,
+			PJMEDIA_PIA_SRATE(&media_port->info),
+			PJMEDIA_PIA_CCNT(&media_port->info),
+			PJMEDIA_PIA_SPF(&media_port->info),
+			PJMEDIA_PIA_BITS(&media_port->info),
+			0, 0,
+			&rec_file_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to use rec file", status);
+	return;
+    }
+
+    memcpy(&global_pj_port, rec_file_port, sizeof (pjmedia_port));
+
+    status = pjmedia_master_port_create(inv->pool,
+					media_port,
+					&global_pj_port,
+					0,
+					&master_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to create rec master port", status);
+	return;
+    }
+
+    global_rec_play_port.rec_pj_port = rec_file_port;
+    global_rec_play_port.play_pj_port = play_file_port;
+
+    global_pj_port.get_frame = rec_play_port_get_frame;
+    global_pj_port.put_frame = rec_play_port_put_frame;
+
+    status = pjmedia_master_port_start(master_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Error starting play master port", status);
+	return;
+    }
+
+    printf("\n\n Playing from WAV %s and recording to WAV %s \n\n",
+	play_file, rec_file);
+}
+
+static void create_player(pjsip_inv_session *inv, pjmedia_port *media_port) {
+    unsigned wav_ptime;
+    pj_status_t status;;
+    char play_file[] = "iron_man.wav";
+    pjmedia_port *play_file_port = NULL;
+    pjmedia_master_port *master_port = NULL;
+
+    wav_ptime = PJMEDIA_PIA_PTIME(&media_port->info);
+    status = pjmedia_wav_player_port_create(inv->dlg->pool, play_file, wav_ptime,
+					0, -1, &play_file_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to use file", status);
+	return;
+    }
+
+    status = pjmedia_master_port_create(inv->dlg->pool, play_file_port, media_port,
+					0, &master_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to create master port", status);
+	return;
+    }
+
+    status = pjmedia_master_port_start(master_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Error starting master port", status);
+	return;
+    }
+
+    printf("\n\nPlaying from WAV file %s..\n\n", play_file);
+}
+
+static void create_recorder(pjsip_inv_session *inv, pjmedia_port *media_port) {
+    pj_status_t status;;
+    char rec_file[] = "output.wav";
+    pjmedia_port *rec_file_port = NULL;
+    pjmedia_master_port *master_port = NULL;
+
+    status = pjmedia_wav_writer_port_create(inv->pool,
+			rec_file,
+			PJMEDIA_PIA_SRATE(&media_port->info),
+			PJMEDIA_PIA_CCNT(&media_port->info),
+			PJMEDIA_PIA_SPF(&media_port->info),
+			PJMEDIA_PIA_BITS(&media_port->info),
+			0, 0,
+			&rec_file_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to use rec file", status);
+	return;
+    }
+
+    status = pjmedia_master_port_create(inv->dlg->pool, media_port,
+					rec_file_port, 0, &master_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Unable to create master port", status);
+	return;
+    }
+
+    status = pjmedia_master_port_start(master_port);
+    if (status != PJ_SUCCESS) {
+	app_perror(THIS_FILE, "Error starting master port", status);
+	return;
+    }
+
+    printf("\n\nRecording to WAV file %s..\n\n", rec_file);
+}
 
 /*
  * Callback when SDP negotiation has completed.
@@ -858,36 +1014,37 @@ static void call_on_media_update( pjsip_inv_session *inv,
     pjmedia_stream_get_port(g_med_stream, &media_port);
 
     /* Create sound port */
+#if defined(PLAYBACK_ONLY)
+    create_player(inv, media_port);
+#elif defined(RECORD_ONLY)
+    create_recorder(inv, media_port);
+#elif defined(PLAYBACK_AND_RECORD)
+    create_player_and_recorder(inv, media_port);
+#else
+    /* Logic derived from original simpleua.c */
+    pjmedia_snd_port_create(inv->pool,
+                            PJMEDIA_AUD_DEFAULT_CAPTURE_DEV,
+                            PJMEDIA_AUD_DEFAULT_PLAYBACK_DEV,
+                            PJMEDIA_PIA_SRATE(&media_port->info),/* clock rate      */
+                            PJMEDIA_PIA_CCNT(&media_port->info),/* channel count    */
+                            PJMEDIA_PIA_SPF(&media_port->info), /* samples per frame*/
+                            PJMEDIA_PIA_BITS(&media_port->info),/* bits per sample  */
+                            0,
+                            &g_snd_port);
 
-    {
-	unsigned wav_ptime;
-	char play_file[] = "iron_man.wav";
-	pjmedia_port *play_file_port = NULL;
-	pjmedia_master_port *master_port = NULL;
-
-	wav_ptime = PJMEDIA_PIA_PTIME(&media_port->info);
-	status = pjmedia_wav_player_port_create(inv->dlg->pool, play_file, wav_ptime,
-						0, -1, &play_file_port);
-	if (status != PJ_SUCCESS) {
-		app_perror(THIS_FILE, "Unable to use file", status);
-		return;
-	}
-
-	status = pjmedia_master_port_create(inv->dlg->pool, play_file_port, media_port,
-					    0, &master_port);
-	if (status != PJ_SUCCESS) {
-		app_perror(THIS_FILE, "Unable to create master port", status);
-		return;
-	}
-
-	status = pjmedia_master_port_start(master_port);
-	if (status != PJ_SUCCESS) {
-		app_perror(THIS_FILE, "Error starting master port", status);
-		return;
-	}
-
-	printf("Playing from WAV file %s..\n", play_file);
+    if (status != PJ_SUCCESS) {
+	app_perror( THIS_FILE, "Unable to create sound port", status);
+	PJ_LOG(3,(THIS_FILE, "%d %d %d %d",
+		    PJMEDIA_PIA_SRATE(&media_port->info),/* clock rate	    */
+		    PJMEDIA_PIA_CCNT(&media_port->info),/* channel count    */
+		    PJMEDIA_PIA_SPF(&media_port->info), /* samples per frame*/
+		    PJMEDIA_PIA_BITS(&media_port->info) /* bits per sample  */
+	    ));
+	return;
     }
+
+    status = pjmedia_snd_port_connect(g_snd_port, media_port);
+#endif
 
     /* Get the media port interface of the second stream in the session,
      * which is video stream. With this media port interface, we can attach
