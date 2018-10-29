@@ -22,6 +22,7 @@ cd $BASE/$PJPROJECT
 		--with-external-srtp
 
 	cp $BASE/user.mak .
+	cp $BASE/config_site.h pjlib/include/pj/config_site.h
 	make dep
 	make
 	make DESTDIR=$PJINSTALL install
