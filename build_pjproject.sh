@@ -17,7 +17,7 @@ cd $BASE/$PJPROJECT
 		--disable-oss \
 		--disable-opencore-amr \
 		--disable-v4l2 \
-		--disable-vide \
+		--disable-video \
 		--disable-ffmpeg \
 		--with-external-srtp
 
