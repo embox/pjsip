@@ -51,6 +51,14 @@
  * of playback and capture audio devices. */
 //#define PLAYBACK_AND_RECORD
 
+/* Display error and exit application */
+static void error_exit(const char *title, pj_status_t status)
+{
+    pjsua_perror(THIS_FILE, title, status);
+    pjsua_destroy();
+    exit(1);
+}
+
 /* Callback called by the library upon receiving incoming call */
 static void on_incoming_call(pjsua_acc_id acc_id, pjsua_call_id call_id,
 			     pjsip_rx_data *rdata)
@@ -137,14 +145,6 @@ static void on_call_media_state(pjsua_call_id call_id)
     }
 }
 #endif
-
-/* Display error and exit application */
-static void error_exit(const char *title, pj_status_t status)
-{
-    pjsua_perror(THIS_FILE, title, status);
-    pjsua_destroy();
-    exit(1);
-}
 
 /*
  * main()
