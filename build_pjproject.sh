@@ -17,11 +17,12 @@ cd $BASE/$PJPROJECT
 		--disable-oss \
 		--disable-opencore-amr \
 		--disable-v4l2 \
-		--disable-vide \
+		--disable-video \
 		--disable-ffmpeg \
 		--with-external-srtp
 
 	cp $BASE/user.mak .
+	cp $BASE/config_site.h pjlib/include/pj/config_site.h
 	make dep
 	make
 	make DESTDIR=$PJINSTALL install
