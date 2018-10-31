@@ -160,6 +160,8 @@ int main(int argc, char *argv[])
     status = pjsua_create();
     if (status != PJ_SUCCESS) error_exit("Error in pjsua_create()", status);
 
+    pj_log_set_level(5);
+
     /* If argument is specified, it's got to be a valid SIP URL */
     if (argc > 1) {
 	status = pjsua_verify_url(argv[1]);
